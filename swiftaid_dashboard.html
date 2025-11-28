@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftAid - Emergency Response Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1f3a 0%, #0f1420 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 50px;
+            padding: 0 10px;
+        }
+
+        .logo span {
+            color: #ff4757;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255, 71, 87, 0.2);
+            color: white;
+        }
+
+        .menu-item svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Central SOS Area */
+        .content-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        .sos-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sos-circle {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sos-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 71, 87, 0.5);
+            animation: rotate 20s linear infinite;
+        }
+
+        .ring-1 { width: 280px; height: 280px; }
+        .ring-2 { width: 340px; height: 340px; animation-duration: 30s; }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .sos-button {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 0 60px rgba(255, 71, 87, 0.6);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+            border: none;
+            color: white;
+        }
+
+        .sos-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 80px rgba(255, 71, 87, 0.8);
+        }
+
+        .sos-button:active {
+            transform: scale(0.95);
+        }
+
+        .sos-text {
+            margin-top: 30px;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Right Sidebar */
+        .right-sidebar {
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .action-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(-5px);
+        }
+
+        .action-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 71, 87, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .action-text {
+            flex: 1;
+        }
+
+        .action-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .action-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin: 0 20px 20px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #ff4757;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="logo">Swift<span>Aid</span></div>
+            <div class="menu-item active">
+                <svg fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                </svg>
+                <span>Emergency SOS</span>
+            </div>
+            <div class="menu-item">
+                <svg fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                </svg>
+                <span>Hospitals Locator</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-left">
+                    <h1>What's the Emergency, Mr. Stark?</h1>
+                </div>
+                <div class="header-icons">
+                    <div class="icon-btn">🔔</div>
+                    <div class="icon-btn">⚙️</div>
+                    <div class="icon-btn">👤</div>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Central SOS -->
+                <div></div>
+                <div class="sos-container">
+                    <div class="sos-circle">
+                        <div class="sos-ring ring-1"></div>
+                        <div class="sos-ring ring-2"></div>
+                        <button class="sos-button pulse" id="sosButton">
+                            SOS
+                        </button>
+                    </div>
+                    <div class="sos-text">Emergency? Tap to Alert</div>
+                </div>
+
+                <!-- Right Action Cards -->
+                <div class="right-sidebar">
+                    <div class="action-card">
+                        <div class="action-icon">📞</div>
+                        <div class="action-text">
+                            <div class="action-title">Call to Ambulance</div>
+                            <div class="action-subtitle">Quick emergency call</div>
+                        </div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-icon">🏥</div>
+                        <div class="action-text">
+                            <div class="action-title">Hospital Locator</div>
+                            <div class="action-subtitle">Find nearby hospitals</div>
+                        </div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-icon">📋</div>
+                        <div class="action-text">
+                            <div class="action-title">Logs and Records</div>
+                            <div class="action-subtitle">View your history</div>
+                        </div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-icon">🚨</div>
+                        <div class="action-text">
+                            <div class="action-title">On the Way, Mr. Stark!</div>
+                            <div class="action-subtitle">Track ambulance</div>
+                        </div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-icon">ℹ️</div>
+                        <div class="action-text">
+                            <div class="action-title">Help Desk</div>
+                            <div class="action-subtitle">Get support</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav">
+                <div class="nav-item active">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                    </svg>
+                    <span>Emergency</span>
+                </div>
+                <div class="nav-item">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Maps</span>
+                </div>
+                <div class="nav-item">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                    </svg>
+                    <span>Statistics</span>
+                </div>
+                <div class="nav-item">
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Profile</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SOS Button Click Handler - Integrated with Green Corridor Backend
+        document.getElementById('sosButton').addEventListener('click', async function() {
+            // Add visual feedback
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => this.style.transform = 'scale(1)', 200);
+            
+            try {
+                const response = await fetch('http://localhost:8000/telemetry/update', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ambulance_id: "AMB-SOS-001",
+                        location: { 
+                            lat: 12.9716, 
+                            lon: 77.5946 
+                        },
+                        speed_kmh: 0,
+                        heading: 0
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Success alert
+                    alert('🚨 SOS ALERT ACTIVATED!\n\n✅ Green Corridor Activated\n🚑 Emergency services notified\n📍 Location: 12.9716°N, 77.5946°E\n⏰ Status: ' + data.status + '\n🕐 Time: ' + new Date().toLocaleTimeString());
+                    
+                    // Visual confirmation - button turns green
+                    this.style.background = 'linear-gradient(135deg, #51cf66 0%, #37b24d 100%)';
+                    this.textContent = '✓';
+                    this.style.fontSize = '64px';
+                    
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        this.style.background = 'linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%)';
+                        this.textContent = 'SOS';
+                        this.style.fontSize = '48px';
+                    }, 3000);
+                } else {
+                    alert('⚠️ Failed to activate emergency response.\nStatus: ' + response.status + '\n\nPlease try again or call 108 directly.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Connection Error!\n\n' + 
+                      'Cannot reach emergency backend.\n\n' +
+                      '📋 Checklist:\n' +
+                      '1. Backend server running?\n' +
+                      '2. Server at http://localhost:8000?\n' +
+                      '3. CORS enabled?\n\n' +
+                      '🚨 Emergency: Call 108 directly!');
+            }
+        });
+
+        // Action Card Click Handlers
+        document.querySelectorAll('.action-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.action-title').textContent;
+                console.log('Action clicked:', title);
+                
+                // Add specific actions for each card
+                if (title.includes('Ambulance')) {
+                    if (confirm('📞 Call Emergency Services (108)?')) {
+                        window.location.href = 'tel:108';
+                    }
+                } else if (title.includes('Hospital')) {
+                    alert('🏥 Opening hospital locator...\n\nFeature coming soon!');
+                } else if (title.includes('Logs')) {
+                    alert('📋 Opening emergency logs...\n\nFeature coming soon!');
+                } else if (title.includes('Way')) {
+                    alert('🚨 Tracking ambulance location...\n\nFeature coming soon!');
+                } else if (title.includes('Help')) {
+                    alert('ℹ️ SwiftAid Help Desk\n\n📧 Email: support@swiftaid.com\n📞 Phone: 1800-SWIFTAID\n🌐 Web: www.swiftaid.com');
+                }
+            });
+        });
+
+        // Bottom Navigation Handlers
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all items
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                const label = this.querySelector('span').textContent;
+                console.log('Navigation:', label);
+            });
+        });
+
+        // Menu Item Handlers
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all items
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                const label = this.querySelector('span').textContent;
+                console.log('Menu:', label);
+            });
+        });
+
+        // Console log on page load
+        console.log('🚑 SwiftAid Emergency Dashboard Loaded');
+        console.log('✅ Backend: http://localhost:8000');
+        console.log('📋 Make sure your Green Corridor Agent is running!');
+    </script>
+</body>
+</html>

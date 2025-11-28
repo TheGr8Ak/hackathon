@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Corridor Live Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .status {
+            padding: 10px 20px;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .status.connected {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .status.disconnected {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+            padding-left: 20px;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-top: 0;
+            font-size: 1.8em;
+        }
+        
+        .ambulance-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .info-value {
+            color: #212529;
+        }
+        
+        .route-segments {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .segment {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #adb5bd;
+            transition: all 0.3s ease;
+        }
+        
+        .segment.active {
+            background: #d3f9d8;
+            border-left-color: #51cf66;
+            box-shadow: 0 4px 15px rgba(81, 207, 102, 0.3);
+        }
+        
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .segment-id {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #495057;
+        }
+        
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .badge.green-corridor {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .badge.normal {
+            background: #adb5bd;
+            color: white;
+        }
+        
+        .badge.clear {
+            background: #51cf66;
+            color: white;
+        }
+        
+        .badge.moderate {
+            background: #ffd43b;
+            color: #333;
+        }
+        
+        .badge.congested {
+            background: #ff8787;
+            color: white;
+        }
+        
+        .badge.gridlock {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #868e96;
+            margin-top: 5px;
+        }
+        
+        .raw-data {
+            background: #212529;
+            color: #51cf66;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .timestamp {
+            text-align: center;
+            color: #868e96;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .updating {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚑 Green Corridor Live Dashboard</h1>
+            <p>Real-time Emergency Route Monitoring</p>
+        </div>
+        
+        <div id="status" class="status disconnected">
+            ⚠️ Connecting to WebSocket...
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📍 Ambulance Status</h2>
+                <div id="ambulance-data" class="ambulance-info">
+                    <p style="text-align: center; color: #868e96;">
+                        Waiting for telemetry data...
+                    </p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🛣️ Route Segments</h2>
+                <div id="route-segments" class="route-segments">
+                    <p style="text-align: center; color: #868e96;">
+                        Loading route information...
+                    </p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>💻 Raw JSON Data</h2>
+                <pre id="raw-output" class="raw-data">Waiting for data...</pre>
+            </div>
+            
+            <div class="timestamp" id="last-update">
+                Last update: Never
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        const statusEl = document.getElementById('status');
+        const ambulanceDataEl = document.getElementById('ambulance-data');
+        const routeSegmentsEl = document.getElementById('route-segments');
+        const rawOutputEl = document.getElementById('raw-output');
+        const lastUpdateEl = document.getElementById('last-update');
+
+        function connect() {
+            ws = new WebSocket('ws://localhost:8000/ws/dashboard');
+
+            ws.onopen = () => {
+                console.log('✅ WebSocket connected');
+                statusEl.textContent = '✅ Connected - Live Updates Active';
+                statusEl.className = 'status connected';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('📊 Update received:', data);
+                
+                // Update raw JSON
+                rawOutputEl.textContent = JSON.stringify(data, null, 2);
+                rawOutputEl.className = 'raw-data updating';
+                setTimeout(() => rawOutputEl.className = 'raw-data', 500);
+                
+                // Update ambulance info
+                if (data.ambulance) {
+                    ambulanceDataEl.innerHTML = `
+                        <div class="info-item">
+                            <span class="info-label">🚑 Ambulance ID:</span>
+                            <span class="info-value">${data.ambulance.ambulance_id}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">📍 Latitude:</span>
+                            <span class="info-value">${data.ambulance.location.lat.toFixed(6)}°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">📍 Longitude:</span>
+                            <span class="info-value">${data.ambulance.location.lon.toFixed(6)}°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">⚡ Speed:</span>
+                            <span class="info-value">${data.ambulance.speed_kmh.toFixed(1)} km/h</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">🧭 Heading:</span>
+                            <span class="info-value">${data.ambulance.heading.toFixed(1)}°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">⏰ Timestamp:</span>
+                            <span class="info-value">${new Date(data.ambulance.timestamp).toLocaleString()}</span>
+                        </div>
+                    `;
+                } else {
+                    ambulanceDataEl.innerHTML = `
+                        <p style="text-align: center; color: #868e96;">
+                            No ambulance data available yet. Send a telemetry update first.
+                        </p>
+                    `;
+                }
+                
+                // Update route segments
+                if (data.route_segments && data.route_segments.length > 0) {
+                    routeSegmentsEl.innerHTML = data.route_segments.map(seg => `
+                        <div class="segment ${seg.is_green_corridor_active ? 'active' : ''}">
+                            <div class="segment-header">
+                                <span class="segment-id">Segment ${seg.segment_id}</span>
+                                <div>
+                                    ${seg.is_green_corridor_active ? 
+                                        '<span class="badge green-corridor">🟢 GREEN CORRIDOR</span>' : 
+                                        '<span class="badge normal">⚪ Normal</span>'
+                                    }
+                                    <span class="badge ${seg.traffic_status.toLowerCase()}">${seg.traffic_status}</span>
+                                </div>
+                            </div>
+                            <div class="coordinates">
+                                Start: ${seg.start.lat.toFixed(4)}, ${seg.start.lon.toFixed(4)} → 
+                                End: ${seg.end.lat.toFixed(4)}, ${seg.end.lon.toFixed(4)}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                // Update timestamp
+                lastUpdateEl.textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+            };
+
+            ws.onerror = (error) => {
+                console.error('❌ WebSocket error:', error);
+                statusEl.textContent = '❌ Connection Error';
+                statusEl.className = 'status disconnected';
+            };
+
+            ws.onclose = () => {
+                console.log('⚠️ WebSocket disconnected. Reconnecting in 3s...');
+                statusEl.textContent = '⚠️ Disconnected - Reconnecting...';
+                statusEl.className = 'status disconnected';
+                setTimeout(connect, 3000);
+            };
+        }
+
+        // Start connection
+        connect();
+    </script>
+</body>
+</html>
